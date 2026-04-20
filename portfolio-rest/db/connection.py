@@ -13,7 +13,7 @@ def init_db(config: configparser.ConfigParser):
     if not url:
         raise RuntimeError('Database URL not set. Add [database] url to config.ini or set DATABASE_URL env var.')
     _engine = create_engine(url)
-    _Session = sessionmaker(bind=_engine)
+    _Session = sessionmaker(bind=_engine, autobegin=True)
 
 
 def get_session():

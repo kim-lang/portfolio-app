@@ -1,4 +1,4 @@
-from sqlalchemy import Boolean, Column, DateTime, Double, Integer, String
+from sqlalchemy import Boolean, Column, DateTime, Double, Integer, Numeric, String
 from sqlalchemy.orm import DeclarativeBase
 
 
@@ -14,6 +14,7 @@ class Transaction(Base):
     date           = Column(DateTime(timezone=True), nullable=False)
     buy            = Column(Boolean, nullable=False)
     price          = Column(Double, nullable=False)
+    shares         = Column(Numeric(precision=18, scale=8), nullable=False)
 
     def to_dict(self):
         return {
@@ -22,4 +23,5 @@ class Transaction(Base):
             'date':           self.date.isoformat(),
             'buy':            self.buy,
             'price':          self.price,
+            'shares':         float(self.shares),
         }
