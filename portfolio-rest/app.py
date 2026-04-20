@@ -1,6 +1,7 @@
 import logging
 from datetime import datetime, timezone
 from flask import Flask, jsonify, request
+from sqlalchemy import text
 from flask_cors import CORS
 from config import load_config
 from providers import get_provider
@@ -89,6 +90,13 @@ def list_transactions():
     with get_session() as session:
         txns = session.query(Transaction).order_by(Transaction.date.desc()).all()
         return jsonify([t.to_dict() for t in txns])
+
+
+@app.route('/portfolio', methods=['GET'])
+def get_portfolio():
+    with get_session() as session:
+        rows = session.execute(text('SELECT symbol, shares, avg_price, total_cost FROM portfolio')).mappings().all()
+        return jsonify([dict(r) for r in rows])
 
 
 if __name__ == '__main__':
