@@ -1,7 +1,9 @@
 import logging
 from flask import Flask, jsonify
 from flask_cors import CORS
+from config import load_config
 from providers import get_provider
+from db import init_db
 
 logging.basicConfig(
     level=logging.INFO,
@@ -12,8 +14,15 @@ logger = logging.getLogger(__name__)
 app = Flask(__name__)
 CORS(app)
 
+config = load_config()
 provider = get_provider()
 logger.info('Using stock provider: %s', type(provider).__name__)
+
+try:
+    init_db(config)
+    logger.info('Database connection established')
+except RuntimeError as e:
+    logger.warning('Database not available: %s', e)
 
 
 @app.route('/')

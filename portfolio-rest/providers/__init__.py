@@ -1,5 +1,4 @@
-import configparser
-import os
+from config import load_config
 from .base import StockProvider
 from .yfinance_provider import YFinanceProvider
 from .alphavantage_provider import AlphaVantageProvider
@@ -11,13 +10,9 @@ _PROVIDERS = {
     'mock':          MockProvider,
 }
 
-def _load_config() -> configparser.ConfigParser:
-    config = configparser.ConfigParser()
-    config.read(os.path.join(os.path.dirname(__file__), '..', 'config.ini'))
-    return config
 
 def get_provider() -> StockProvider:
-    config = _load_config()
+    config = load_config()
     name = config.get('settings', 'provider', fallback='yfinance')
     cls = _PROVIDERS.get(name)
     if cls is None:
