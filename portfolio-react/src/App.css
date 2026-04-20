@@ -295,3 +295,41 @@ header h1 {
 .confirm-sell-button:hover {
   background-color: #b71c1c;
 }
+
+.chart-panel {
+  padding: 16px 20px 20px;
+  border-top: 1px solid #ddd;
+  background: #fff;
+}
+
+.chart-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+
+.chart-title {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 600;
+  color: #555;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.chart-legend {
+  display: flex;
+  gap: 16px;
+  font-size: 12px;
+  color: #666;
+}
+
+.legend-value {
+  color: #1565c0;
+  font-weight: 600;
+}
+
+.legend-cost {
+  color: #aaa;
+}

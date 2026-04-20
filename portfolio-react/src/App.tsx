@@ -1,5 +1,7 @@
 import { useEffect, useState } from 'react'
 import './App.css'
+import PortfolioChart from './components/PortfolioChart'
+import type { Snapshot } from './components/PortfolioChart'
 
 interface StockQuote {
   price: number
@@ -32,8 +34,17 @@ function App() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [holdings, setHoldings] = useState<Holding[]>([])
+  const [snapshots, setSnapshots] = useState<Snapshot[]>([])
 
   const API_BASE = 'http://127.0.0.1:5000'
+
+  const fetchSnapshots = async () => {
+    try {
+      const response = await fetch(`${API_BASE}/snapshots`)
+      if (!response.ok) return
+      setSnapshots(await response.json())
+    } catch { /* fail silently */ }
+  }
 
   const fetchHoldings = async () => {
     try {
@@ -64,7 +75,7 @@ function App() {
     }
   }
 
-  useEffect(() => { fetchHoldings() }, [])
+  useEffect(() => { fetchHoldings(); fetchSnapshots() }, [])
 
   const handleSearch: NonNullable<React.ComponentProps<'form'>['onSubmit']> = async (e) => {
     e.preventDefault()
@@ -327,6 +338,8 @@ function App() {
           </div>
         </main>
       </div>
+
+      <PortfolioChart snapshots={snapshots} />
     </div>
   )
 }
