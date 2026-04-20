@@ -48,24 +48,100 @@ header {
   margin-bottom: 20px;
 }
 
-.results {
-  display: grid;
-  gap: 15px;
+.results-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
 }
 
-.stock-item {
-  border: 1px solid #ddd;
-  padding: 15px;
-  border-radius: 8px;
-  background-color: #f9f9f9;
+.results-table th {
+  background-color: #f0f0f0;
+  text-align: left;
+  padding: 10px 12px;
+  border-bottom: 2px solid #ccc;
+  font-weight: 600;
 }
 
-.stock-item h3 {
-  margin: 0 0 5px 0;
+.results-table td {
+  padding: 10px 12px;
+  border-bottom: 1px solid #eee;
+}
+
+.clickable-row {
+  cursor: pointer;
+}
+
+.results-table tbody tr:hover {
+  background-color: #f0f7ff;
+}
+
+.results-table .symbol {
+  font-weight: 600;
   color: #333;
 }
 
-.stock-item p {
-  margin: 0;
-  color: #666;
+.positive {
+  color: #2e7d32;
+}
+
+.negative {
+  color: #c62828;
+}
+
+.buy-button {
+  padding: 4px 12px;
+  font-size: 13px;
+  background-color: #2e7d32;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.buy-button:hover {
+  background-color: #1b5e20;
+}
+
+.buy-row td {
+  background-color: #f6fff6;
+  border-bottom: 2px solid #c8e6c9;
+}
+
+.buy-form {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.buy-label {
+  font-size: 13px;
+  color: #555;
+}
+
+.shares-input {
+  width: 100px;
+  padding: 6px 8px;
+  font-size: 14px;
+  border: 1px solid #aaa;
+  border-radius: 4px;
+}
+
+.buy-total {
+  font-size: 14px;
+  font-weight: 600;
+  color: #2e7d32;
+}
+
+.confirm-buy-button {
+  padding: 6px 14px;
+  font-size: 13px;
+  background-color: #007bff;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.confirm-buy-button:hover {
+  background-color: #0056b3;
 }
