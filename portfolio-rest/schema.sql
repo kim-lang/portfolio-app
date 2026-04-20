@@ -7,6 +7,13 @@ CREATE TABLE IF NOT EXISTS transactions (
     shares         NUMERIC(18, 8)   NOT NULL
 );
 
+CREATE TABLE IF NOT EXISTS portfolio_snapshots (
+    id         SERIAL PRIMARY KEY,
+    date       DATE             NOT NULL UNIQUE,
+    value      DOUBLE PRECISION NOT NULL,
+    cost_basis DOUBLE PRECISION NOT NULL
+);
+
 CREATE OR REPLACE VIEW portfolio AS
 SELECT
     symbol,

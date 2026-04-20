@@ -1,11 +1,12 @@
 import logging
 from datetime import datetime, timezone
 from flask import Flask, jsonify, request
-from sqlalchemy import text
 from flask_cors import CORS
+from apscheduler.schedulers.background import BackgroundScheduler
 from config import load_config
 from providers import get_provider
-from db import init_db, get_session, Transaction
+from db import init_db, get_session, Transaction, PortfolioSnapshot, PortfolioView
+from services import take_snapshot
 
 logging.basicConfig(
     level=logging.INFO,
@@ -23,6 +24,10 @@ logger.info('Using stock provider: %s', type(provider).__name__)
 try:
     init_db(config)
     logger.info('Database connection established')
+    scheduler = BackgroundScheduler()
+    scheduler.add_job(lambda: take_snapshot(provider), 'cron', hour=17, minute=0)
+    scheduler.start()
+    logger.info('Snapshot scheduler started')
 except RuntimeError as e:
     logger.warning('Database not available: %s', e)
 
@@ -95,8 +100,21 @@ def list_transactions():
 @app.route('/portfolio', methods=['GET'])
 def get_portfolio():
     with get_session() as session:
-        rows = session.execute(text('SELECT symbol, shares, avg_price, total_cost FROM portfolio')).mappings().all()
-        return jsonify([dict(r) for r in rows])
+        rows = session.query(PortfolioView).all()
+        return jsonify([r.to_dict() for r in rows])
+
+
+@app.route('/snapshots', methods=['GET'])
+def get_snapshots():
+    with get_session() as session:
+        rows = session.query(PortfolioSnapshot).order_by(PortfolioSnapshot.date.asc()).all()
+        return jsonify([r.to_dict() for r in rows])
+
+
+@app.route('/snapshots/now', methods=['POST'])
+def snapshot_now():
+    take_snapshot(provider)
+    return jsonify({'message': 'Snapshot taken'}), 201
 
 
 if __name__ == '__main__':
