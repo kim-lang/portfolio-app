@@ -45,7 +45,6 @@ header h1 {
   height: 50vh;
 }
 
-.portfolio-panel h2,
 .search-panel-title {
   margin: 0;
   font-size: 14px;
@@ -59,14 +58,49 @@ header h1 {
   flex-shrink: 0;
 }
 
+.panel-tabs {
+  display: flex;
+  flex-shrink: 0;
+  border-bottom: 1px solid #ddd;
+  background: #f0f0f0;
+}
+
+.panel-tab {
+  flex: 1;
+  padding: 10px 12px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #999;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  background: #e8e8e8;
+  border: none;
+  border-bottom: 2px solid #ddd;
+  cursor: pointer;
+}
+
+.panel-tab:hover:not(.panel-tab--active) {
+  background: #efefef;
+  color: #666;
+}
+
+.panel-tab--active {
+  background: #fafafa;
+  color: #1565c0;
+  border-bottom-color: #fafafa;
+}
+
 .portfolio-table-wrapper {
   overflow-y: auto;
   flex: 1;
+  scrollbar-gutter: stable;
 }
 
 .portfolio-table {
   width: 100%;
-  border-collapse: collapse;
+  border-collapse: separate;
+  border-spacing: 0;
+  table-layout: fixed;
   font-size: 13px;
 }
 
@@ -75,7 +109,7 @@ header h1 {
   top: 0;
   text-align: left;
   padding: 8px 12px;
-  border-bottom: 2px solid #ccc;
+  box-shadow: inset 0 -2px 0 #ccc;
   font-weight: 600;
   background: #f7f7f7;
   white-space: nowrap;
@@ -86,6 +120,9 @@ header h1 {
   padding: 8px 12px;
   border-bottom: 1px solid #eee;
   white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  text-align: left;
 }
 
 .portfolio-table tbody tr:hover {
