@@ -5,6 +5,12 @@ import type { Holding, Transaction } from '../types'
 export type { Holding }
 
 type Tab = 'portfolio' | 'transactions'
+type SortDir = 'asc' | 'desc'
+
+type HoldingSort = 'symbol' | 'shares' | 'avgPrice' | 'currentPrice' | 'value' | 'gain'
+type TxnSort = 'date' | 'symbol' | 'buy' | 'shares' | 'price' | 'total'
+
+interface Sort<T> { field: T; dir: SortDir }
 
 interface Props {
   apiBase: string
@@ -13,10 +19,20 @@ interface Props {
   onError: (message: string) => void
 }
 
+function SortIcon({ active, dir }: { active: boolean; dir: SortDir }) {
+  return (
+    <span className={`sort-icon${active ? ' sort-icon--active' : ''}`}>
+      {active ? (dir === 'asc' ? '▲' : '▼') : '⇅'}
+    </span>
+  )
+}
+
 export default function PortfolioPanel({ apiBase, holdings, onSellSuccess, onError }: Props) {
   const [tab, setTab] = useState<Tab>('portfolio')
   const [openSell, setOpenSell] = useState<string | null>(null)
   const [transactions, setTransactions] = useState<Transaction[]>([])
+  const [hSort, setHSort] = useState<Sort<HoldingSort>>({ field: 'symbol', dir: 'asc' })
+  const [tSort, setTSort] = useState<Sort<TxnSort>>({ field: 'date', dir: 'desc' })
 
   useEffect(() => {
     if (tab !== 'transactions') return
@@ -28,6 +44,51 @@ export default function PortfolioPanel({ apiBase, holdings, onSellSuccess, onErr
 
   const toggleSell = (symbol: string) =>
     setOpenSell((prev) => (prev === symbol ? null : symbol))
+
+  function sortBy<T>(current: Sort<T>, field: T): Sort<T> {
+    return { field, dir: current.field === field && current.dir === 'asc' ? 'desc' : 'asc' }
+  }
+
+  const sortedHoldings = [...holdings].sort((a, b) => {
+    const aVal = a.currentPrice !== null ? a.currentPrice * a.shares : null
+    const bVal = b.currentPrice !== null ? b.currentPrice * b.shares : null
+    const aGain = aVal !== null ? aVal - a.avgPrice * a.shares : null
+    const bGain = bVal !== null ? bVal - b.avgPrice * b.shares : null
+
+    const map: Record<HoldingSort, number> = {
+      symbol:       a.symbol.localeCompare(b.symbol),
+      shares:       a.shares - b.shares,
+      avgPrice:     a.avgPrice - b.avgPrice,
+      currentPrice: (a.currentPrice ?? 0) - (b.currentPrice ?? 0),
+      value:        (aVal ?? 0) - (bVal ?? 0),
+      gain:         (aGain ?? 0) - (bGain ?? 0),
+    }
+    return hSort.dir === 'asc' ? map[hSort.field] : -map[hSort.field]
+  })
+
+  const sortedTxns = [...transactions].sort((a, b) => {
+    const map: Record<TxnSort, number> = {
+      date:   new Date(a.date).getTime() - new Date(b.date).getTime(),
+      symbol: a.symbol.localeCompare(b.symbol),
+      buy:    Number(a.buy) - Number(b.buy),
+      shares: a.shares - b.shares,
+      price:  a.price - b.price,
+      total:  (a.shares * a.price) - (b.shares * b.price),
+    }
+    return tSort.dir === 'asc' ? map[tSort.field] : -map[tSort.field]
+  })
+
+  const th = (label: string, field: HoldingSort) => (
+    <th className="sortable" onClick={() => setHSort(sortBy(hSort, field))}>
+      {label}<SortIcon active={hSort.field === field} dir={hSort.dir} />
+    </th>
+  )
+
+  const tt = (label: string, field: TxnSort) => (
+    <th className="sortable" onClick={() => setTSort(sortBy(tSort, field))}>
+      {label}<SortIcon active={tSort.field === field} dir={tSort.dir} />
+    </th>
+  )
 
   return (
     <aside className="portfolio-panel">
@@ -54,17 +115,17 @@ export default function PortfolioPanel({ apiBase, holdings, onSellSuccess, onErr
             <table className="portfolio-table">
               <thead>
                 <tr>
-                  <th>Symbol</th>
-                  <th>Shares</th>
-                  <th>Avg Cost</th>
-                  <th>Price</th>
-                  <th>Value</th>
-                  <th>Gain/Loss</th>
+                  {th('Symbol', 'symbol')}
+                  {th('Shares', 'shares')}
+                  {th('Avg Cost', 'avgPrice')}
+                  {th('Price', 'currentPrice')}
+                  {th('Value', 'value')}
+                  {th('Gain/Loss', 'gain')}
                   <th></th>
                 </tr>
               </thead>
               <tbody>
-                {holdings.map((h) => {
+                {sortedHoldings.map((h) => {
                   const value = h.currentPrice !== null ? h.currentPrice * h.shares : null
                   const gain = value !== null ? value - h.avgPrice * h.shares : null
                   const gainPct = gain !== null ? (gain / (h.avgPrice * h.shares)) * 100 : null
@@ -113,16 +174,16 @@ export default function PortfolioPanel({ apiBase, holdings, onSellSuccess, onErr
             <table className="portfolio-table">
               <thead>
                 <tr>
-                  <th>Date</th>
-                  <th>Symbol</th>
-                  <th>Type</th>
-                  <th>Shares</th>
-                  <th>Price</th>
-                  <th>Total</th>
+                  {tt('Date', 'date')}
+                  {tt('Symbol', 'symbol')}
+                  {tt('Type', 'buy')}
+                  {tt('Shares', 'shares')}
+                  {tt('Price', 'price')}
+                  {tt('Total', 'total')}
                 </tr>
               </thead>
               <tbody>
-                {transactions.map((t) => (
+                {sortedTxns.map((t) => (
                   <tr key={t.transaction_id}>
                     <td>{new Date(t.date).toLocaleDateString()}</td>
                     <td className="symbol">{t.symbol}</td>

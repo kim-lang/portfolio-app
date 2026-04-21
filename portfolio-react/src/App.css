@@ -125,6 +125,25 @@ header h1 {
   text-align: left;
 }
 
+.portfolio-table th.sortable {
+  cursor: pointer;
+  user-select: none;
+}
+
+.portfolio-table th.sortable:hover {
+  background: #efefef;
+}
+
+.sort-icon {
+  margin-left: 4px;
+  font-size: 10px;
+  color: #bbb;
+}
+
+.sort-icon--active {
+  color: #1565c0;
+}
+
 .portfolio-table tbody tr:hover {
   background-color: #f0f0f0;
 }
