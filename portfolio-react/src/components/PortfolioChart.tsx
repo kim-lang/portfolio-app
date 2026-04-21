@@ -1,20 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { createChart, ColorType, LineStyle, AreaSeries, LineSeries } from 'lightweight-charts'
-
-interface Snapshot {
-  date: string
-  value: number
-  cost_basis: number
-}
-
-interface Transaction {
-  transaction_id: number
-  symbol: string
-  date: string
-  buy: boolean
-  price: number
-  shares: number
-}
+import type { Snapshot, Transaction } from '../types'
 
 interface Props {
   apiBase: string

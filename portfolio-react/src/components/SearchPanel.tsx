@@ -1,19 +1,6 @@
 import { useState } from 'react'
 import TradeFormRow from './TradeFormRow'
-
-interface StockQuote {
-  price: number
-  change: number
-  changePercent: number
-}
-
-interface StockMatch {
-  symbol: string
-  name: string
-  quote: StockQuote | null
-  loadingQuote: boolean
-  buyOpen: boolean
-}
+import type { StockMatch } from '../types'
 
 interface Props {
   apiBase: string

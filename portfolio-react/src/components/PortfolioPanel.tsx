@@ -1,21 +1,8 @@
 import { useEffect, useState } from 'react'
 import TradeFormRow from './TradeFormRow'
+import type { Holding, Transaction } from '../types'
 
-export interface Holding {
-  symbol: string
-  shares: number
-  avgPrice: number
-  currentPrice: number | null
-}
-
-interface Transaction {
-  transaction_id: number
-  symbol: string
-  date: string
-  buy: boolean
-  price: number
-  shares: number
-}
+export type { Holding }
 
 type Tab = 'portfolio' | 'transactions'
 
