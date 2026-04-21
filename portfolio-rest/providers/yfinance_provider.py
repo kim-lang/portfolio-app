@@ -2,7 +2,7 @@ import configparser
 import logging
 import time
 import yfinance as yf
-import yfinance.exceptions as yfe  # type: ignore[import-untyped]
+import yfinance.exceptions as yfe 
 from .base import StockProvider
 from exceptions import RateLimitError, SymbolNotFoundError, DataUnavailableError
 
@@ -36,6 +36,33 @@ class YFinanceProvider(StockProvider):
         ]
         logger.info('Found %d matches for: %s', len(matches), query)
         return matches
+
+    def get_quotes(self, symbols: list[str]) -> dict[str, dict]:
+        logger.info('yfinance batch quotes: %s', symbols)
+        try:
+            tickers = yf.Tickers(' '.join(symbols))
+        except yfe.YFRateLimitError as e:
+            raise RateLimitError(str(e)) from e
+        except yfe.YFException as e:
+            raise DataUnavailableError(str(e)) from e
+        result = {}
+        for symbol in symbols:
+            time.sleep(self._request_delay)
+            try:
+                info = tickers.tickers[symbol].fast_info
+                price = info.last_price
+                prev  = info.previous_close
+                if price is not None and prev is not None:
+                    result[symbol] = {
+                        'price':         round(price, 2),
+                        'change':        round(price - prev, 2),
+                        'changePercent': round((price - prev) / prev * 100, 2),
+                    }
+            except yfe.YFRateLimitError as e:
+                raise RateLimitError(str(e)) from e
+            except Exception as e:
+                logger.warning('Skipping %s in batch: %s', symbol, e)
+        return result
 
     def get_quote(self, symbol: str) -> dict | None:
         logger.info('yfinance quote: %s', symbol)

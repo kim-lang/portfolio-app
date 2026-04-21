@@ -36,7 +36,22 @@ export default function SearchPanel({ apiBase, open, onToggle, onBuySuccess }: P
         ...s, quote: null, loadingQuote: true, buyOpen: false,
       }))
       setResults(matches)
-      matches.forEach(({ symbol }) => fetchQuote(symbol))
+      if (import.meta.env.VITE_BATCH_QUOTES === 'true') {
+        try {
+          const symbols = matches.map((m) => m.symbol).join(',')
+          const qr = await fetch(`${apiBase}/quotes?symbols=${symbols}`)
+          if (qr.ok) {
+            const quotes: Record<string, { price: number; change: number; changePercent: number }> = await qr.json()
+            setResults((prev) => prev.map((s) => ({ ...s, quote: quotes[s.symbol] ?? null, loadingQuote: false })))
+          } else {
+            setResults((prev) => prev.map((s) => ({ ...s, loadingQuote: false })))
+          }
+        } catch {
+          setResults((prev) => prev.map((s) => ({ ...s, loadingQuote: false })))
+        }
+      } else {
+        matches.forEach(({ symbol }) => fetchQuote(symbol))
+      }
     } catch (err) {
       addToast('error', 'Search failed', err instanceof Error ? err.message : 'Could not retrieve results')
       setResults([])

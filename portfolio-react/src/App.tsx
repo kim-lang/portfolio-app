@@ -24,16 +24,28 @@ function App() {
         sellOpen: false,
       }))
       setHoldings(built)
-      built.forEach(async (h) => {
+      if (import.meta.env.VITE_BATCH_QUOTES === 'true') {
         try {
-          const r = await fetch(`${API_BASE}/quote/${h.symbol}`)
+          const symbols = built.map((h) => h.symbol).join(',')
+          const r = await fetch(`${API_BASE}/quotes?symbols=${symbols}`)
           if (!r.ok) return
-          const quote = await r.json()
-          setHoldings((prev) => prev.map((x) =>
-            x.symbol === h.symbol ? { ...x, currentPrice: quote.price } : x
+          const quotes: Record<string, { price: number }> = await r.json()
+          setHoldings((prev) => prev.map((h) =>
+            quotes[h.symbol] ? { ...h, currentPrice: quotes[h.symbol].price } : h
           ))
         } catch { /* leave as null */ }
-      })
+      } else {
+        built.forEach(async (h) => {
+          try {
+            const r = await fetch(`${API_BASE}/quote/${h.symbol}`)
+            if (!r.ok) return
+            const quote = await r.json()
+            setHoldings((prev) => prev.map((x) =>
+              x.symbol === h.symbol ? { ...x, currentPrice: quote.price } : x
+            ))
+          } catch { /* leave as null */ }
+        })
+      }
     } catch { /* portfolio unavailable */ }
   }
 

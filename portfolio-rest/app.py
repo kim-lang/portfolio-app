@@ -59,6 +59,15 @@ def search_stock(query):
     return jsonify(matches)
 
 
+@app.route('/quotes')
+def batch_quotes():
+    raw = request.args.get('symbols', '')
+    symbols = [s.strip().upper() for s in raw.split(',') if s.strip()]
+    if not symbols:
+        raise ValidationError('symbols query parameter is required')
+    return jsonify(provider.get_quotes(symbols))
+
+
 @app.route('/quote/<symbol>')
 def quote_stock(symbol):
     data = _fetch_quote(symbol.upper())
