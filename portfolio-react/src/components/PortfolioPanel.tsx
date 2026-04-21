@@ -16,7 +16,7 @@ interface Props {
   apiBase: string
   holdings: Holding[]
   onSellSuccess: () => void
-  onError: (message: string) => void
+
 }
 
 function SortIcon({ active, dir }: { active: boolean; dir: SortDir }) {
@@ -27,7 +27,7 @@ function SortIcon({ active, dir }: { active: boolean; dir: SortDir }) {
   )
 }
 
-export default function PortfolioPanel({ apiBase, holdings, onSellSuccess, onError }: Props) {
+export default function PortfolioPanel({ apiBase, holdings, onSellSuccess }: Props) {
   const [tab, setTab] = useState<Tab>('portfolio')
   const [openSell, setOpenSell] = useState<string | null>(null)
   const [openBuy, setOpenBuy] = useState<string | null>(null)
@@ -163,7 +163,6 @@ export default function PortfolioPanel({ apiBase, holdings, onSellSuccess, onErr
                           price={h.currentPrice ?? h.avgPrice}
                           onSuccess={() => { setOpenBuy(null); onSellSuccess() }}
                           onCancel={() => setOpenBuy(null)}
-                          onError={onError}
                         />
                       )}
                       {openSell === h.symbol && (
@@ -177,7 +176,6 @@ export default function PortfolioPanel({ apiBase, holdings, onSellSuccess, onErr
                           maxShares={h.shares}
                           onSuccess={() => { setOpenSell(null); onSellSuccess() }}
                           onCancel={() => setOpenSell(null)}
-                          onError={onError}
                         />
                       )}
                     </>

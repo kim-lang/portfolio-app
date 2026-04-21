@@ -8,7 +8,6 @@ import SearchPanel from './components/SearchPanel'
 const API_BASE = 'http://127.0.0.1:5000'
 
 function App() {
-  const [error, setError] = useState('')
   const [holdings, setHoldings] = useState<Holding[]>([])
   const [searchOpen, setSearchOpen] = useState(true)
 
@@ -46,21 +45,17 @@ function App() {
         <h1>Stock Search</h1>
       </header>
 
-      {error && <p className="error" style={{ padding: '0 16px' }}>{error}</p>}
-
       <div className="layout" style={{ gridTemplateColumns: searchOpen ? '1fr 1fr' : '1fr auto' }}>
         <PortfolioPanel
           apiBase={API_BASE}
           holdings={holdings}
           onSellSuccess={fetchHoldings}
-          onError={setError}
         />
         <SearchPanel
           apiBase={API_BASE}
           open={searchOpen}
           onToggle={() => setSearchOpen((v) => !v)}
           onBuySuccess={fetchHoldings}
-          onError={setError}
         />
       </div>
 

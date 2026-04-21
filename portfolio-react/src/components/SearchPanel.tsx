@@ -1,16 +1,17 @@
 import { useState } from 'react'
 import TradeFormRow from './TradeFormRow'
 import type { StockMatch } from '../types'
+import { useToast } from '../hooks/ToastContext'
 
 interface Props {
   apiBase: string
   open: boolean
   onToggle: () => void
   onBuySuccess: () => void
-  onError: (message: string) => void
+
 }
 
-export default function SearchPanel({ apiBase, open, onToggle, onBuySuccess, onError }: Props) {
+export default function SearchPanel({ apiBase, open, onToggle, onBuySuccess }: Props) {
   if (!open) {
     return (
       <div className="search-panel search-panel--collapsed" onClick={onToggle} title="Expand search">
@@ -18,27 +19,26 @@ export default function SearchPanel({ apiBase, open, onToggle, onBuySuccess, onE
       </div>
     )
   }
+  const { addToast } = useToast()
   const [query, setQuery] = useState('')
   const [results, setResults] = useState<StockMatch[]>([])
   const [loading, setLoading] = useState(false)
-  const [error, setError] = useState('')
 
   const handleSearch: NonNullable<React.ComponentProps<'form'>['onSubmit']> = async (e) => {
     e.preventDefault()
     if (!query.trim()) return
     setLoading(true)
-    setError('')
     try {
       const response = await fetch(`${apiBase}/search/${encodeURIComponent(query)}`)
-      if (!response.ok) throw new Error('Search failed')
       const data = await response.json()
+      if (!response.ok) throw new Error(data.error ?? 'Search failed')
       const matches: StockMatch[] = data.map((s: Pick<StockMatch, 'symbol' | 'name'>) => ({
         ...s, quote: null, loadingQuote: true, buyOpen: false,
       }))
       setResults(matches)
       matches.forEach(({ symbol }) => fetchQuote(symbol))
-    } catch {
-      setError('Failed to search stocks')
+    } catch (err) {
+      addToast('error', 'Search failed', err instanceof Error ? err.message : 'Could not retrieve results')
       setResults([])
     } finally {
       setLoading(false)
@@ -85,7 +85,6 @@ export default function SearchPanel({ apiBase, open, onToggle, onBuySuccess, onE
             {loading ? 'Searching...' : 'Search'}
           </button>
         </form>
-        {error && <p className="error">{error}</p>}
       </div>
 
       <div className="results-wrapper">
@@ -130,7 +129,7 @@ export default function SearchPanel({ apiBase, open, onToggle, onBuySuccess, onE
                       price={stock.quote?.price}
                       onSuccess={() => { closeBuy(stock.symbol); onBuySuccess() }}
                       onCancel={() => closeBuy(stock.symbol)}
-                      onError={onError}
+
                     />
                   )}
                 </>

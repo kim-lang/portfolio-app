@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useToast } from '../hooks/ToastContext'
 
 interface Props {
   mode: 'buy' | 'sell'
@@ -9,10 +10,10 @@ interface Props {
   maxShares?: number
   onSuccess: () => void
   onCancel: () => void
-  onError: (message: string) => void
 }
 
-export default function TradeFormRow({ mode, apiBase, symbol, colSpan, price, maxShares, onSuccess, onCancel, onError }: Props) {
+export default function TradeFormRow({ mode, apiBase, symbol, colSpan, price, maxShares, onSuccess, onCancel }: Props) {
+  const { addToast } = useToast()
   const [shares, setShares] = useState('')
   const isBuy = mode === 'buy'
   const numShares = parseFloat(shares)
@@ -21,9 +22,18 @@ export default function TradeFormRow({ mode, apiBase, symbol, colSpan, price, ma
   const handleSubmit: NonNullable<React.ComponentProps<'form'>['onSubmit']> = async (e) => {
     e.preventDefault()
     const numShares = parseFloat(shares)
-    if (isNaN(numShares) || numShares <= 0) return
-    if (!isBuy && maxShares !== undefined && numShares > maxShares) return
-    if (!price) return
+    if (isNaN(numShares) || numShares <= 0) {
+      addToast('error', 'Invalid quantity', 'Please enter a valid number of shares')
+      return
+    }
+    if (!isBuy && maxShares !== undefined && numShares > maxShares) {
+      addToast('error', 'Insufficient shares', `You only have ${maxShares.toFixed(4)} shares available`)
+      return
+    }
+    if (!price) {
+      addToast('error', 'Price unavailable', 'Cannot submit order without a current price')
+      return
+    }
 
     try {
       const res = await fetch(`${apiBase}/${mode}`, {
@@ -31,10 +41,12 @@ export default function TradeFormRow({ mode, apiBase, symbol, colSpan, price, ma
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ symbol, price, shares: numShares }),
       })
-      if (!res.ok) throw new Error()
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error ?? `Could not submit order for ${symbol}`)
+      addToast('success', `${isBuy ? 'Buy' : 'Sell'} confirmed`, `${isBuy ? 'Bought' : 'Sold'} ${numShares} share${numShares !== 1 ? 's' : ''} of ${symbol}`)
       onSuccess()
-    } catch {
-      onError(`Failed to submit ${mode} order for ${symbol}`)
+    } catch (err) {
+      addToast('error', `${mode === 'buy' ? 'Buy' : 'Sell'} failed`, err instanceof Error ? err.message : `Could not submit order for ${symbol}`)
     }
   }
 
