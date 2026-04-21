@@ -24,9 +24,6 @@ build/
 .env.local
 .env.*.local
 
-# Local config (may contain API keys)
-config.ini
-
 # Logs
 *.log
 npm-debug.log*

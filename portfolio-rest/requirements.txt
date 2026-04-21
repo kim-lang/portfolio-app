@@ -5,3 +5,4 @@ yfinance==0.2.54
 SQLAlchemy==2.0.36
 psycopg2-binary==2.9.10
 APScheduler==3.10.4
+cachetools==7.0.6
