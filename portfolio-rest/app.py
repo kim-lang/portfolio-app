@@ -6,6 +6,7 @@ from apscheduler.schedulers.background import BackgroundScheduler
 from cachetools import TTLCache, cached
 from config import load_config
 from providers import get_provider
+from exceptions import AppError, NoMatchesError, ValidationError
 from db import init_db, get_session, Transaction, PortfolioSnapshot, PortfolioView
 from services import take_snapshot
 
@@ -17,6 +18,10 @@ logger = logging.getLogger(__name__)
 
 app = Flask(__name__)
 CORS(app)
+
+@app.errorhandler(AppError)
+def handle_app_error(e):
+    return jsonify({'error': e.message}), e.status_code
 
 config = load_config()
 provider = get_provider()
@@ -50,17 +55,16 @@ def home():
 def search_stock(query):
     matches = provider.search(query)
     if not matches:
-        return jsonify({'error': 'No matches found'}), 404
+        raise NoMatchesError()
     return jsonify(matches)
 
 
 @app.route('/quote/<symbol>')
 def quote_stock(symbol):
     data = _fetch_quote(symbol.upper())
-    if data:
-        return jsonify(data)
-    logger.warning('Quote not available for symbol: %s', symbol)
-    return jsonify({'error': 'Quote not available'}), 404
+    if not data:
+        raise NoMatchesError()
+    return jsonify(data)
 
 
 def _record_transaction(buy: bool):
@@ -70,9 +74,9 @@ def _record_transaction(buy: bool):
     shares = body.get('shares')
 
     if not symbol or price is None or shares is None:
-        return jsonify({'error': 'symbol, price, and shares are required'}), 400
+        raise ValidationError('symbol, price, and shares are required')
     if float(price) <= 0 or float(shares) <= 0:
-        return jsonify({'error': 'price and shares must be positive'}), 400
+        raise ValidationError('price and shares must be positive')
 
     txn = Transaction(
         symbol=symbol,
