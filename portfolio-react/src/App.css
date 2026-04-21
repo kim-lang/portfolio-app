@@ -333,3 +333,45 @@ header h1 {
 .legend-cost {
   color: #aaa;
 }
+
+.chart-tooltip {
+  position: absolute;
+  background: #fff;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  padding: 8px 10px;
+  font-size: 12px;
+  pointer-events: none;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
+  z-index: 10;
+  color: #333;
+  min-width: 140px;
+}
+
+.ct-row {
+  margin-bottom: 4px;
+  line-height: 1.4;
+}
+
+.ct-row:last-child {
+  margin-bottom: 0;
+}
+
+.ct-badge {
+  font-weight: 600;
+  font-size: 11px;
+}
+
+.ct-buy {
+  color: #2e7d32;
+}
+
+.ct-sell {
+  color: #c62828;
+}
+
+.ct-detail {
+  color: #777;
+  font-size: 11px;
+  margin-top: 1px;
+}

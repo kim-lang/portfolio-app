@@ -1,0 +1,145 @@
+import { useState } from 'react'
+import TradeFormRow from './TradeFormRow'
+
+interface StockQuote {
+  price: number
+  change: number
+  changePercent: number
+}
+
+interface StockMatch {
+  symbol: string
+  name: string
+  quote: StockQuote | null
+  loadingQuote: boolean
+  buyOpen: boolean
+}
+
+interface Props {
+  apiBase: string
+  onBuySuccess: () => void
+  onError: (message: string) => void
+}
+
+export default function SearchPanel({ apiBase, onBuySuccess, onError }: Props) {
+  const [query, setQuery] = useState('')
+  const [results, setResults] = useState<StockMatch[]>([])
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState('')
+
+  const handleSearch: NonNullable<React.ComponentProps<'form'>['onSubmit']> = async (e) => {
+    e.preventDefault()
+    if (!query.trim()) return
+    setLoading(true)
+    setError('')
+    try {
+      const response = await fetch(`${apiBase}/search/${encodeURIComponent(query)}`)
+      if (!response.ok) throw new Error('Search failed')
+      const data = await response.json()
+      setResults(data.map((s: Pick<StockMatch, 'symbol' | 'name'>) => ({
+        ...s, quote: null, loadingQuote: false, buyOpen: false,
+      })))
+    } catch {
+      setError('Failed to search stocks')
+      setResults([])
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const fetchQuote = async (symbol: string) => {
+    setResults((prev) => prev.map((s) => s.symbol === symbol ? { ...s, loadingQuote: true } : s))
+    try {
+      const response = await fetch(`${apiBase}/quote/${symbol}`)
+      const quote = response.ok ? await response.json() : null
+      setResults((prev) => prev.map((s) => s.symbol === symbol ? { ...s, quote, loadingQuote: false } : s))
+      return quote
+    } catch {
+      setResults((prev) => prev.map((s) => s.symbol === symbol ? { ...s, loadingQuote: false } : s))
+      return null
+    }
+  }
+
+  const handleBuyClick = async (e: React.MouseEvent, symbol: string) => {
+    e.stopPropagation()
+    const stock = results.find((s) => s.symbol === symbol)
+    if (!stock) return
+    if (!stock.quote && !stock.loadingQuote) await fetchQuote(symbol)
+    setResults((prev) => prev.map((s) => s.symbol === symbol ? { ...s, buyOpen: !s.buyOpen } : s))
+  }
+
+  const closeBuy = (symbol: string) =>
+    setResults((prev) => prev.map((s) => s.symbol === symbol ? { ...s, buyOpen: false } : s))
+
+  return (
+    <main className="search-panel">
+      <h2 className="search-panel-title">Search</h2>
+      <div className="search-panel-body">
+        <form onSubmit={handleSearch} className="search-form">
+          <input
+            type="text"
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            placeholder="Search for stocks by name or symbol..."
+            className="search-input"
+          />
+          <button type="submit" disabled={loading} className="search-button">
+            {loading ? 'Searching...' : 'Search'}
+          </button>
+        </form>
+        {error && <p className="error">{error}</p>}
+      </div>
+
+      <div className="results-wrapper">
+        {results.length > 0 && (
+          <table className="results-table">
+            <thead>
+              <tr>
+                <th>Symbol</th>
+                <th>Name</th>
+                <th>Price</th>
+                <th>Change</th>
+                <th>Change %</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody>
+              {results.map((stock) => (
+                <>
+                  <tr key={stock.symbol} onClick={() => fetchQuote(stock.symbol)} className="clickable-row">
+                    <td className="symbol">{stock.symbol}</td>
+                    <td>{stock.name}</td>
+                    <td>{stock.loadingQuote ? '…' : stock.quote ? `$${stock.quote.price.toFixed(2)}` : '—'}</td>
+                    <td className={stock.quote ? (stock.quote.change >= 0 ? 'positive' : 'negative') : ''}>
+                      {stock.loadingQuote ? '' : stock.quote ? (stock.quote.change >= 0 ? '+' : '') + stock.quote.change.toFixed(2) : '—'}
+                    </td>
+                    <td className={stock.quote ? (stock.quote.changePercent >= 0 ? 'positive' : 'negative') : ''}>
+                      {stock.loadingQuote ? '' : stock.quote ? (stock.quote.changePercent >= 0 ? '+' : '') + stock.quote.changePercent.toFixed(2) + '%' : '—'}
+                    </td>
+                    <td>
+                      <button className="buy-button" onClick={(e) => handleBuyClick(e, stock.symbol)}>
+                        Buy
+                      </button>
+                    </td>
+                  </tr>
+                  {stock.buyOpen && (
+                    <TradeFormRow
+                      key={`${stock.symbol}-buy`}
+                      mode="buy"
+                      apiBase={apiBase}
+                      symbol={stock.symbol}
+                      colSpan={6}
+                      price={stock.quote?.price}
+                      onSuccess={() => { closeBuy(stock.symbol); onBuySuccess() }}
+                      onError={onError}
+                    />
+                  )}
+                </>
+              ))}
+            </tbody>
+          </table>
+        )}
+      </div>
+    </main>
+  )
+}
