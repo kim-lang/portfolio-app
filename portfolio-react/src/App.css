@@ -354,6 +354,12 @@ header h1 {
   background-color: #0056b3;
 }
 
+.action-buttons {
+  display: flex;
+  gap: 6px;
+  white-space: nowrap;
+}
+
 .sell-button {
   padding: 4px 12px;
   font-size: 13px;
@@ -376,7 +382,7 @@ header h1 {
 .confirm-sell-button {
   padding: 6px 14px;
   font-size: 13px;
-  background-color: #c62828;
+  background-color: #007bff;
   color: white;
   border: none;
   border-radius: 4px;
@@ -384,7 +390,21 @@ header h1 {
 }
 
 .confirm-sell-button:hover {
-  background-color: #b71c1c;
+  background-color: #0056b3;
+}
+
+.cancel-button {
+  padding: 6px 14px;
+  font-size: 13px;
+  background-color: #f5f5f5;
+  color: #555;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.cancel-button:hover {
+  background-color: #e8e8e8;
 }
 
 .chart-panel {

@@ -30,6 +30,7 @@ function SortIcon({ active, dir }: { active: boolean; dir: SortDir }) {
 export default function PortfolioPanel({ apiBase, holdings, onSellSuccess, onError }: Props) {
   const [tab, setTab] = useState<Tab>('portfolio')
   const [openSell, setOpenSell] = useState<string | null>(null)
+  const [openBuy, setOpenBuy] = useState<string | null>(null)
   const [transactions, setTransactions] = useState<Transaction[]>([])
   const [hSort, setHSort] = useState<Sort<HoldingSort>>({ field: 'symbol', dir: 'asc' })
   const [tSort, setTSort] = useState<Sort<TxnSort>>({ field: 'date', dir: 'desc' })
@@ -42,8 +43,15 @@ export default function PortfolioPanel({ apiBase, holdings, onSellSuccess, onErr
       .catch(() => {})
   }, [tab, apiBase])
 
-  const toggleSell = (symbol: string) =>
+  const toggleSell = (symbol: string) => {
     setOpenSell((prev) => (prev === symbol ? null : symbol))
+    setOpenBuy(null)
+  }
+
+  const toggleBuy = (symbol: string) => {
+    setOpenBuy((prev) => (prev === symbol ? null : symbol))
+    setOpenSell(null)
+  }
 
   function sortBy<T>(current: Sort<T>, field: T): Sort<T> {
     return { field, dir: current.field === field && current.dir === 'asc' ? 'desc' : 'asc' }
@@ -140,12 +148,24 @@ export default function PortfolioPanel({ apiBase, holdings, onSellSuccess, onErr
                         <td className={gain !== null ? (gain >= 0 ? 'positive' : 'negative') : ''}>
                           {gain !== null ? `${gain >= 0 ? '+' : ''}$${gain.toFixed(2)} (${gainPct!.toFixed(2)}%)` : '—'}
                         </td>
-                        <td>
-                          <button className="sell-button" onClick={() => toggleSell(h.symbol)}>
-                            Sell
-                          </button>
+                        <td className="action-buttons">
+                          <button className="buy-button" onClick={() => toggleBuy(h.symbol)}>Buy</button>
+                          <button className="sell-button" onClick={() => toggleSell(h.symbol)}>Sell</button>
                         </td>
                       </tr>
+                      {openBuy === h.symbol && (
+                        <TradeFormRow
+                          key={`${h.symbol}-buy`}
+                          mode="buy"
+                          apiBase={apiBase}
+                          symbol={h.symbol}
+                          colSpan={7}
+                          price={h.currentPrice ?? h.avgPrice}
+                          onSuccess={() => { setOpenBuy(null); onSellSuccess() }}
+                          onCancel={() => setOpenBuy(null)}
+                          onError={onError}
+                        />
+                      )}
                       {openSell === h.symbol && (
                         <TradeFormRow
                           key={`${h.symbol}-sell`}
@@ -156,6 +176,7 @@ export default function PortfolioPanel({ apiBase, holdings, onSellSuccess, onErr
                           price={h.currentPrice ?? h.avgPrice}
                           maxShares={h.shares}
                           onSuccess={() => { setOpenSell(null); onSellSuccess() }}
+                          onCancel={() => setOpenSell(null)}
                           onError={onError}
                         />
                       )}

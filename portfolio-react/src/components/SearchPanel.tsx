@@ -130,6 +130,7 @@ export default function SearchPanel({ apiBase, open, onToggle, onBuySuccess, onE
                       colSpan={6}
                       price={stock.quote?.price}
                       onSuccess={() => { closeBuy(stock.symbol); onBuySuccess() }}
+                      onCancel={() => closeBuy(stock.symbol)}
                       onError={onError}
                     />
                   )}
