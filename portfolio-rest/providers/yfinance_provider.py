@@ -1,5 +1,6 @@
 import configparser
 import logging
+import time
 import yfinance as yf
 import yfinance.exceptions as yfe  # type: ignore[import-untyped]
 from .base import StockProvider
@@ -12,6 +13,7 @@ class YFinanceProvider(StockProvider):
 
     def __init__(self, config: configparser.ConfigParser):
         super().__init__(config)
+        self._request_delay = config.getfloat('yfinance', 'request_delay', fallback=0.5)
 
     def search(self, query: str) -> list[dict]:
         logger.info('yfinance search: %s', query)
@@ -37,6 +39,7 @@ class YFinanceProvider(StockProvider):
 
     def get_quote(self, symbol: str) -> dict | None:
         logger.info('yfinance quote: %s', symbol)
+        time.sleep(self._request_delay)
         try:
             info = yf.Ticker(symbol).fast_info
             price = info.last_price
