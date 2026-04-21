@@ -10,6 +10,7 @@ const API_BASE = 'http://127.0.0.1:5000'
 function App() {
   const [error, setError] = useState('')
   const [holdings, setHoldings] = useState<Holding[]>([])
+  const [searchOpen, setSearchOpen] = useState(true)
 
   const fetchHoldings = async () => {
     try {
@@ -47,7 +48,7 @@ function App() {
 
       {error && <p className="error" style={{ padding: '0 16px' }}>{error}</p>}
 
-      <div className="layout">
+      <div className="layout" style={{ gridTemplateColumns: searchOpen ? '1fr 1fr' : '1fr auto' }}>
         <PortfolioPanel
           apiBase={API_BASE}
           holdings={holdings}
@@ -56,6 +57,8 @@ function App() {
         />
         <SearchPanel
           apiBase={API_BASE}
+          open={searchOpen}
+          onToggle={() => setSearchOpen((v) => !v)}
           onBuySuccess={fetchHoldings}
           onError={setError}
         />

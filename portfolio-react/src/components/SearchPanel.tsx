@@ -17,11 +17,20 @@ interface StockMatch {
 
 interface Props {
   apiBase: string
+  open: boolean
+  onToggle: () => void
   onBuySuccess: () => void
   onError: (message: string) => void
 }
 
-export default function SearchPanel({ apiBase, onBuySuccess, onError }: Props) {
+export default function SearchPanel({ apiBase, open, onToggle, onBuySuccess, onError }: Props) {
+  if (!open) {
+    return (
+      <div className="search-panel search-panel--collapsed" onClick={onToggle} title="Expand search">
+        <span className="search-panel-collapsed-label">Search</span>
+      </div>
+    )
+  }
   const [query, setQuery] = useState('')
   const [results, setResults] = useState<StockMatch[]>([])
   const [loading, setLoading] = useState(false)
@@ -73,7 +82,10 @@ export default function SearchPanel({ apiBase, onBuySuccess, onError }: Props) {
 
   return (
     <main className="search-panel">
-      <h2 className="search-panel-title">Search</h2>
+      <div className="search-panel-title">
+        <span>Search</span>
+        <button className="panel-collapse-btn" onClick={onToggle} title="Collapse search">✕</button>
+      </div>
       <div className="search-panel-body">
         <form onSubmit={handleSearch} className="search-form">
           <input

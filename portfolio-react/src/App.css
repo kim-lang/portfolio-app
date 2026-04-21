@@ -11,9 +11,8 @@ html, body, #root {
 .app {
   display: flex;
   flex-direction: column;
-  height: 100vh;
+  min-height: 100vh;
   font-family: Arial, sans-serif;
-  overflow: hidden;
 }
 
 header {
@@ -33,9 +32,7 @@ header h1 {
   grid-template-columns: 1fr 1fr;
   gap: 16px;
   padding: 16px;
-  flex: 1;
   width: 100%;
-  overflow: hidden;
   align-items: start;
 }
 
@@ -43,10 +40,9 @@ header h1 {
   display: flex;
   flex-direction: column;
   border: 1px solid #ddd;
-  border-radius: 8px;
   overflow: hidden;
   background: #fafafa;
-  max-height: 50vh;
+  height: 50vh;
 }
 
 .portfolio-panel h2,
@@ -106,14 +102,53 @@ header h1 {
   display: flex;
   flex-direction: column;
   border: 1px solid #ddd;
-  border-radius: 8px;
   overflow: hidden;
   background: #fff;
-  max-height: 50vh;
+  height: 50vh;
 }
 
 .search-panel-title {
   border-bottom: 1px solid #ddd;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.search-panel--collapsed {
+  width: 36px;
+  cursor: pointer;
+  justify-content: center;
+  align-items: center;
+  background: #f0f0f0;
+  border-color: #ddd;
+}
+
+.search-panel--collapsed:hover {
+  background: #e8e8e8;
+}
+
+.search-panel-collapsed-label {
+  writing-mode: vertical-rl;
+  font-size: 12px;
+  font-weight: 600;
+  color: #555;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  user-select: none;
+}
+
+.panel-collapse-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 12px;
+  color: #999;
+  padding: 2px 4px;
+  line-height: 1;
+}
+
+.panel-collapse-btn:hover {
+  color: #333;
 }
 
 .search-panel-body {
@@ -298,8 +333,9 @@ header h1 {
 
 .chart-panel {
   padding: 16px 20px 20px;
-  border-top: 1px solid #ddd;
+  border: 1px solid #ddd;
   background: #fff;
+  margin: 0 16px 16px;
 }
 
 .chart-header {
