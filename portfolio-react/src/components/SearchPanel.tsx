@@ -32,9 +32,11 @@ export default function SearchPanel({ apiBase, open, onToggle, onBuySuccess, onE
       const response = await fetch(`${apiBase}/search/${encodeURIComponent(query)}`)
       if (!response.ok) throw new Error('Search failed')
       const data = await response.json()
-      setResults(data.map((s: Pick<StockMatch, 'symbol' | 'name'>) => ({
-        ...s, quote: null, loadingQuote: false, buyOpen: false,
-      })))
+      const matches: StockMatch[] = data.map((s: Pick<StockMatch, 'symbol' | 'name'>) => ({
+        ...s, quote: null, loadingQuote: true, buyOpen: false,
+      }))
+      setResults(matches)
+      matches.forEach(({ symbol }) => fetchQuote(symbol))
     } catch {
       setError('Failed to search stocks')
       setResults([])
@@ -56,11 +58,8 @@ export default function SearchPanel({ apiBase, open, onToggle, onBuySuccess, onE
     }
   }
 
-  const handleBuyClick = async (e: React.MouseEvent, symbol: string) => {
+  const handleBuyClick = (e: React.MouseEvent, symbol: string) => {
     e.stopPropagation()
-    const stock = results.find((s) => s.symbol === symbol)
-    if (!stock) return
-    if (!stock.quote && !stock.loadingQuote) await fetchQuote(symbol)
     setResults((prev) => prev.map((s) => s.symbol === symbol ? { ...s, buyOpen: !s.buyOpen } : s))
   }
 
@@ -105,7 +104,7 @@ export default function SearchPanel({ apiBase, open, onToggle, onBuySuccess, onE
             <tbody>
               {results.map((stock) => (
                 <>
-                  <tr key={stock.symbol} onClick={() => fetchQuote(stock.symbol)} className="clickable-row">
+                  <tr key={stock.symbol} className="clickable-row">
                     <td className="symbol">{stock.symbol}</td>
                     <td>{stock.name}</td>
                     <td>{stock.loadingQuote ? '…' : stock.quote ? `$${stock.quote.price.toFixed(2)}` : '—'}</td>
