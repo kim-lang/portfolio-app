@@ -1,3 +1,5 @@
+TRUNCATE TABLE transactions RESTART IDENTITY;
+
 -- Initial purchases Oct 1, 2025 — cost basis $10,000
 -- AAPL $3,375 + MSFT $2,175 + GOOGL $1,650 + NVDA $1,300 + TSLA $1,500 = $10,000
 INSERT INTO transactions (symbol, date, buy, price, shares) VALUES
