@@ -1,7 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { createChart, ColorType, LineStyle, AreaSeries, LineSeries } from 'lightweight-charts'
-import type { Snapshot, Transaction } from '../types'
-import type { Holding } from './PortfolioPanel'
+import type { Snapshot, Transaction, Holding } from '../types'
 
 interface Props {
   apiBase: string

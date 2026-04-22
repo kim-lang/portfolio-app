@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import './App.css'
 import PortfolioChart from './components/PortfolioChart'
 import PortfolioPanel from './components/PortfolioPanel'
-import type { Holding } from './components/PortfolioPanel'
+import type { Holding } from './types'
 import SearchPanel from './components/SearchPanel'
 
 const API_BASE = import.meta.env.VITE_API_BASE ?? 'http://127.0.0.1:5000'

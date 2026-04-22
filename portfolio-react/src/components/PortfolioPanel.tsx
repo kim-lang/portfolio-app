@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react'
 import TradeFormRow from './TradeFormRow'
 import type { Holding, Transaction } from '../types'
+import { useToast } from '../hooks/ToastContext'
 
-export type { Holding }
 
 type Tab = 'portfolio' | 'transactions'
 type SortDir = 'asc' | 'desc'
@@ -28,6 +28,7 @@ function SortIcon({ active, dir }: { active: boolean; dir: SortDir }) {
 }
 
 export default function PortfolioPanel({ apiBase, holdings, onSellSuccess }: Props) {
+  const { addToast } = useToast()
   const [tab, setTab] = useState<Tab>('portfolio')
   const [openSell, setOpenSell] = useState<string | null>(null)
   const [openBuy, setOpenBuy] = useState<string | null>(null)
@@ -38,9 +39,9 @@ export default function PortfolioPanel({ apiBase, holdings, onSellSuccess }: Pro
   useEffect(() => {
     if (tab !== 'transactions') return
     fetch(`${apiBase}/transactions`)
-      .then((r) => r.ok ? r.json() : [])
+      .then((r) => r.ok ? r.json() : Promise.reject(r))
       .then(setTransactions)
-      .catch(() => {})
+      .catch(() => addToast('error', 'Failed to load transactions', 'Could not retrieve transaction history'))
   }, [tab, apiBase])
 
   const toggleSell = (symbol: string) => {
