@@ -3,7 +3,6 @@ from datetime import datetime, timezone
 from flask import Flask, jsonify, request
 from flask_cors import CORS
 from apscheduler.schedulers.background import BackgroundScheduler
-from cachetools import TTLCache, cached
 from config import load_config
 from providers import get_provider
 from exceptions import AppError, NoMatchesError, ValidationError
@@ -27,13 +26,8 @@ config = load_config()
 provider = get_provider()
 logger.info('Using stock provider: %s', type(provider).__name__)
 
-#add cache for quote endpoint to reduce load on provider and improve response times
-@cached(TTLCache(
-    maxsize=config.getint('cache', 'quote_maxsize', fallback=256),
-    ttl=config.getint('cache', 'quote_ttl', fallback=60),
-))
 def _fetch_quote(symbol: str):
-    return provider.get_quote(symbol)
+    return provider.cached_quote(symbol)
 
 try:
     init_db(config)

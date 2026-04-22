@@ -37,6 +37,7 @@ class YFinanceProvider(StockProvider):
         logger.info('Found %d matches for: %s', len(matches), query)
         return matches
 
+    '''
     def get_quotes(self, symbols: list[str]) -> dict[str, dict]:
         logger.info('yfinance batch quotes: %s', symbols)
         try:
@@ -63,7 +64,8 @@ class YFinanceProvider(StockProvider):
             except Exception as e:
                 logger.warning('Skipping %s in batch: %s', symbol, e)
         return result
-
+    '''
+    
     def get_quote(self, symbol: str) -> dict | None:
         logger.info('yfinance quote: %s', symbol)
         time.sleep(self._request_delay)
