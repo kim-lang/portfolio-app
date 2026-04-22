@@ -1,12 +1,15 @@
 import { useEffect, useRef, useState } from 'react'
 import { createChart, ColorType, LineStyle, AreaSeries, LineSeries } from 'lightweight-charts'
 import type { Snapshot, Transaction } from '../types'
+import type { Holding } from './PortfolioPanel'
 
 interface Props {
   apiBase: string
+  holdings: Holding[]
+  refreshKey: number
 }
 
-export default function PortfolioChart({ apiBase }: Props) {
+export default function PortfolioChart({ apiBase, holdings, refreshKey }: Props) {
   const containerRef = useRef<HTMLDivElement>(null)
   const tooltipRef = useRef<HTMLDivElement>(null)
   const [snapshots, setSnapshots] = useState<Snapshot[]>([])
@@ -24,10 +27,21 @@ export default function PortfolioChart({ apiBase }: Props) {
       } catch { /* fail silently */ }
     }
     fetchData()
-  }, [apiBase])
+  }, [apiBase, refreshKey])
 
   useEffect(() => {
     if (!containerRef.current || snapshots.length === 0) return
+
+    const today = new Date().toISOString().split('T')[0]
+    const hasToday = snapshots.some((s) => s.date === today)
+    const displaySnapshots = hasToday || holdings.length === 0 ? snapshots : [
+      ...snapshots,
+      {
+        date: today,
+        value: holdings.reduce((sum, h) => sum + h.shares * (h.currentPrice ?? h.avgPrice), 0),
+        cost_basis: holdings.reduce((sum, h) => sum + h.shares * h.avgPrice, 0),
+      },
+    ]
 
     containerRef.current.replaceChildren()
     const chart = createChart(containerRef.current, {
@@ -49,21 +63,21 @@ export default function PortfolioChart({ apiBase }: Props) {
       topColor: 'rgba(21, 101, 192, 0.2)',
       bottomColor: 'rgba(21, 101, 192, 0)',
       lineWidth: 2,
-      priceFormat: { type: 'price', prefix: '$' },
+      priceFormat: { type: 'custom', formatter: (p: number) => `$${p.toFixed(2)}` },
     })
 
     const costSeries = chart.addSeries(LineSeries, {
       color: '#aaa',
       lineWidth: 1,
       lineStyle: LineStyle.Dashed,
-      priceFormat: { type: 'price', prefix: '$' },
+      priceFormat: { type: 'custom', formatter: (p: number) => `$${p.toFixed(2)}` },
     })
 
-    valueSeries.setData(snapshots.map((s) => ({ time: s.date, value: s.value })))
-    costSeries.setData(snapshots.map((s) => ({ time: s.date, value: s.cost_basis })))
+    valueSeries.setData(displaySnapshots.map((s) => ({ time: s.date, value: s.value })))
+    costSeries.setData(displaySnapshots.map((s) => ({ time: s.date, value: s.cost_basis })))
 
     // Build map of nearest snapshot date -> transactions (deduplicated by id)
-    const snapshotDates = new Set(snapshots.map((s) => s.date))
+    const snapshotDates = new Set(displaySnapshots.map((s) => s.date))
     const txnsByDate = new Map<string, Transaction[]>()
     const seen = new Set<number>()
 
@@ -129,7 +143,7 @@ export default function PortfolioChart({ apiBase }: Props) {
       observer.disconnect()
       chart.remove()
     }
-  }, [snapshots, transactions])
+  }, [snapshots, transactions, holdings])
 
   if (snapshots.length === 0) return null
 

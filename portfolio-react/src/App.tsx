@@ -5,11 +5,17 @@ import PortfolioPanel from './components/PortfolioPanel'
 import type { Holding } from './components/PortfolioPanel'
 import SearchPanel from './components/SearchPanel'
 
-const API_BASE = 'http://127.0.0.1:5000'
+const API_BASE = import.meta.env.VITE_API_BASE ?? 'http://127.0.0.1:5000'
 
 function App() {
   const [holdings, setHoldings] = useState<Holding[]>([])
   const [searchOpen, setSearchOpen] = useState(true)
+  const [chartRefreshKey, setChartRefreshKey] = useState(0)
+
+  const onTradeSuccess = () => {
+    fetchHoldings()
+    setChartRefreshKey((k) => k + 1)
+  }
 
   const fetchHoldings = async () => {
     try {
@@ -61,17 +67,17 @@ function App() {
         <PortfolioPanel
           apiBase={API_BASE}
           holdings={holdings}
-          onSellSuccess={fetchHoldings}
+          onSellSuccess={onTradeSuccess}
         />
         <SearchPanel
           apiBase={API_BASE}
           open={searchOpen}
           onToggle={() => setSearchOpen((v) => !v)}
-          onBuySuccess={fetchHoldings}
+          onBuySuccess={onTradeSuccess}
         />
       </div>
 
-      <PortfolioChart apiBase={API_BASE} />
+      <PortfolioChart apiBase={API_BASE} holdings={holdings} refreshKey={chartRefreshKey} />
     </div>
   )
 }
