@@ -1,7 +1,6 @@
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import TradeFormRow from './TradeFormRow'
 import type { Holding, Transaction } from '../types'
-import { useToast } from '../hooks/ToastContext'
 
 
 type Tab = 'portfolio' | 'transactions'
@@ -15,8 +14,8 @@ interface Sort<T> { field: T; dir: SortDir }
 interface Props {
   apiBase: string
   holdings: Holding[]
+  transactions: Transaction[]
   onSellSuccess: () => void
-
 }
 
 function SortIcon({ active, dir }: { active: boolean; dir: SortDir }) {
@@ -27,22 +26,12 @@ function SortIcon({ active, dir }: { active: boolean; dir: SortDir }) {
   )
 }
 
-export default function PortfolioPanel({ apiBase, holdings, onSellSuccess }: Props) {
-  const { addToast } = useToast()
+export default function PortfolioPanel({ apiBase, holdings, transactions, onSellSuccess }: Props) {
   const [tab, setTab] = useState<Tab>('portfolio')
   const [openSell, setOpenSell] = useState<string | null>(null)
   const [openBuy, setOpenBuy] = useState<string | null>(null)
-  const [transactions, setTransactions] = useState<Transaction[]>([])
   const [hSort, setHSort] = useState<Sort<HoldingSort>>({ field: 'symbol', dir: 'asc' })
   const [tSort, setTSort] = useState<Sort<TxnSort>>({ field: 'date', dir: 'desc' })
-
-  useEffect(() => {
-    if (tab !== 'transactions') return
-    fetch(`${apiBase}/transactions`)
-      .then((r) => r.ok ? r.json() : Promise.reject(r))
-      .then(setTransactions)
-      .catch(() => addToast('error', 'Failed to load transactions', 'Could not retrieve transaction history'))
-  }, [tab, apiBase])
 
   const toggleSell = (symbol: string) => {
     setOpenSell((prev) => (prev === symbol ? null : symbol))

@@ -5,28 +5,23 @@ import type { Snapshot, Transaction, Holding } from '../types'
 interface Props {
   apiBase: string
   holdings: Holding[]
-  refreshKey: number
+  transactions: Transaction[]
 }
 
-export default function PortfolioChart({ apiBase, holdings, refreshKey }: Props) {
+export default function PortfolioChart({ apiBase, holdings, transactions }: Props) {
   const containerRef = useRef<HTMLDivElement>(null)
   const tooltipRef = useRef<HTMLDivElement>(null)
   const [snapshots, setSnapshots] = useState<Snapshot[]>([])
-  const [transactions, setTransactions] = useState<Transaction[]>([])
 
   useEffect(() => {
-    const fetchData = async () => {
+    const fetchSnapshots = async () => {
       try {
-        const [snapshotRes, txnRes] = await Promise.all([
-          fetch(`${apiBase}/snapshots`),
-          fetch(`${apiBase}/transactions`),
-        ])
-        if (snapshotRes.ok) setSnapshots(await snapshotRes.json())
-        if (txnRes.ok) setTransactions(await txnRes.json())
+        const r = await fetch(`${apiBase}/snapshots`)
+        if (r.ok) setSnapshots(await r.json())
       } catch { /* fail silently */ }
     }
-    fetchData()
-  }, [apiBase, refreshKey])
+    fetchSnapshots()
+  }, [apiBase])
 
   useEffect(() => {
     if (!containerRef.current || snapshots.length === 0) return

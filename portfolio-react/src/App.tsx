@@ -2,19 +2,26 @@ import { useEffect, useState } from 'react'
 import './App.css'
 import PortfolioChart from './components/PortfolioChart'
 import PortfolioPanel from './components/PortfolioPanel'
-import type { Holding } from './types'
+import type { Holding, Transaction } from './types'
 import SearchPanel from './components/SearchPanel'
 
 const API_BASE = import.meta.env.VITE_API_BASE ?? 'http://127.0.0.1:5000'
 
 function App() {
   const [holdings, setHoldings] = useState<Holding[]>([])
+  const [transactions, setTransactions] = useState<Transaction[]>([])
   const [searchOpen, setSearchOpen] = useState(true)
-  const [chartRefreshKey, setChartRefreshKey] = useState(0)
+
+  const fetchTransactions = async () => {
+    try {
+      const r = await fetch(`${API_BASE}/transactions`)
+      if (r.ok) setTransactions(await r.json())
+    } catch { /* fail silently */ }
+  }
 
   const onTradeSuccess = () => {
     fetchHoldings()
-    setChartRefreshKey((k) => k + 1)
+    fetchTransactions()
   }
 
   const fetchHoldings = async () => {
@@ -55,7 +62,7 @@ function App() {
     } catch { /* portfolio unavailable */ }
   }
 
-  useEffect(() => { fetchHoldings() }, [])
+  useEffect(() => { fetchHoldings(); fetchTransactions() }, [])
 
   return (
     <div className="app">
@@ -67,6 +74,7 @@ function App() {
         <PortfolioPanel
           apiBase={API_BASE}
           holdings={holdings}
+          transactions={transactions}
           onSellSuccess={onTradeSuccess}
         />
         <SearchPanel
@@ -77,7 +85,7 @@ function App() {
         />
       </div>
 
-      <PortfolioChart apiBase={API_BASE} holdings={holdings} refreshKey={chartRefreshKey} />
+      <PortfolioChart apiBase={API_BASE} holdings={holdings} transactions={transactions} />
     </div>
   )
 }
